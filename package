@@ -1,0 +1,7 @@
+{
+  "name": "FitnessZone",
+  "private": true,
+  "dependencies": {
+    "resend": "^3.2.0"
+  }
+}
