@@ -1,0 +1,42 @@
+import { Resend } from "resend";
+
+export default async function handler(req, res) {
+  const auth = req.headers.authorization || "";
+  if (auth !== `Bearer ${process.env.API_SECRET}`) {
+    return res.status(401).json({ ok: false, error: "unauthorized" });
+  }
+
+  if (req.method !== "POST") {
+    return res.status(200).json({ ok: true });
+  }
+
+  const { caller_name, caller_phone, message, intent, urgency } = req.body || {};
+
+  if (!caller_phone || !message) {
+    return res.status(400).json({ ok: false, error: "missing_fields" });
+  }
+
+  const resend = new Resend(process.env.RESEND_API_KEY);
+
+  try {
+    await resend.emails.send({
+      from: "Francesca <send@francescaassistant.com>",
+      to: "sales@fitnesszone.com", // 
+      subject: `📞 New Call – ${intent || "General"}`,
+      html: `
+        <h2>Francesca AI Receptionist</h2>
+        <p><strong>Caller:</strong> ${caller_name || "Unknown"}</p>
+        <p><strong>Phone:</strong> ${caller_phone}</p>
+        <p><strong>Intent:</strong> ${intent || "General"}</p>
+        <p><strong>Urgency:</strong> ${urgency || "Medium"}</p>
+        <hr />
+        <p><strong>Message:</strong></p>
+        <p>${message}</p>
+      `
+    });
+
+    return res.status(200).json({ ok: true, sent: true });
+  } catch (e) {
+    return res.status(500).json({ ok: false, error: String(e.message || e) });
+  }
+}
