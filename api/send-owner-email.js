@@ -14,32 +14,22 @@ export default async function handler(req, res) {
     }
 
     // BODY
-    let {
-      caller_name,
-      caller_phone,
-      message,
-      intent,
-      urgency
-    } = req.body || {};
+    let body = req.body || {};
 
-    // 🔥 AUTO-FIX MISSING FIELDS
-    caller_name = caller_name || "Unknown";
-
-    // THIS IS THE BIG ONE — fixes your 400 errors
-    caller_phone = caller_phone || "{{user_number}}";
-
-    message = message || "No message provided";
-
-    intent = intent || "general";
-    urgency = urgency || "medium";
-
-    // ONLY FAIL if phone is STILL missing (shouldn't happen now)
-    if (!caller_phone) {
-      return res.status(400).json({
-        ok: false,
-        error: "missing_fields"
-      });
+    // If Retell sends JSON as a string, parse it
+    if (typeof body === "string") {
+      try {
+        body = JSON.parse(body);
+      } catch {
+        body = {};
+      }
     }
+
+    const caller_name = body.caller_name || "Unknown";
+    const caller_phone = body.caller_phone || "No phone provided";
+    const message = body.message || "No message provided";
+    const intent = body.intent || "general";
+    const urgency = body.urgency || "medium";
 
     if (!process.env.RESEND_API_KEY) {
       return res.status(500).json({
@@ -66,7 +56,11 @@ export default async function handler(req, res) {
       `
     });
 
-    return res.status(200).json({ ok: true, sent: true });
+    return res.status(200).json({
+      ok: true,
+      sent: true,
+      received: body
+    });
 
   } catch (e) {
     console.error("send-owner-email error:", e);
