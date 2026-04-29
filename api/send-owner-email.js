@@ -36,7 +36,7 @@ export default async function handler(req, res) {
 
     await resend.emails.send({
       from: "Francesca <send@francescaassistant.com>",
-      to: "cvaryan22701@gmail.com",
+      to: "sales@fitnesszone.com",
       subject: `📞 New Call – ${intent}`,
       html: `
         <h2>Francesca AI Receptionist</h2>
